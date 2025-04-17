@@ -1,7 +1,7 @@
 const net = require('net');
 
 const clients = [];
-let clientCounter = 1; // to assign unique client IDs
+let clientCounter = 1;
 
 const server = net.createServer((socket) => {
   const clientId = clientCounter++;
@@ -12,11 +12,13 @@ const server = net.createServer((socket) => {
   socket.write(`Welcome ${clientName}!\n`);
   clients.push(socket);
 
+  // Flag to avoid double-logging disconnect on error + end
+  let disconnected = false;
+
   socket.on('data', (data) => {
     const message = data.toString().trim();
     console.log(`Received message from ${clientName}: ${message}`);
 
-    // Broadcast to other clients
     for (let client of clients) {
       if (client !== socket) {
         client.write(`${clientName}: ${message}\n`);
@@ -25,16 +27,25 @@ const server = net.createServer((socket) => {
   });
 
   socket.on('end', () => {
-    console.log(`${clientName} disconnected`);
-    clients.splice(clients.indexOf(socket), 1);
+    if (!disconnected) {
+      disconnected = true;
+      console.log(`${clientName} disconnected`);
+      clients.splice(clients.indexOf(socket), 1);
+    }
   });
 
   socket.on('error', (err) => {
-    console.error(`${clientName} error: ${err.message}`);
+    if (!disconnected) {
+      disconnected = true;
+      console.log(`${clientName} disconnected`);
+      clients.splice(clients.indexOf(socket), 1);
+      // Optional: log actual error silently
+      // console.error(`${clientName} error: ${err.message}`);
+    }
   });
 });
 
 const PORT = 5000;
 server.listen(PORT, () => {
-  console.log(`Chat server started on port ${PORT}`);
+  console.log(`Chat server running on port ${PORT}`);
 });
