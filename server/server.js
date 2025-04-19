@@ -1,4 +1,6 @@
 const net = require('net');
+const fs = require('fs');
+
 
 let clients = [];
 let clientId = 0;
@@ -68,6 +70,8 @@ const server = net.createServer((socket) => {
 
     // Broadcast message
     broadcast(`${getTimeStamp()} ${clientName}: ${message}\n`, socket);
+    //logMassage
+    logMessage(`${clientName}: ${message}`);
   });
 
   socket.on('end', () => {
@@ -109,6 +113,15 @@ function getTimeStamp() {
   const now = new Date();
   return `[${now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}]`;
 }
+
+//function to log messages to a file
+function logMessage(message) {
+  const logEntry = `${new Date().toISOString()} ${message}`;
+  fs.appendFile('chat.log', logEntry + '\n', (err) => {
+    if (err) console.error('Failed to write to log:', err);
+  });
+}
+
 
 // Start server
 server.listen(3000, () => {
