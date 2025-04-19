@@ -1,51 +1,48 @@
 const net = require('net');
 
-const clients = [];
-let clientCounter = 1;
+let clients = [];
+let clientId = 0;
 
 const server = net.createServer((socket) => {
-  const clientId = clientCounter++;
-  const clientName = `Client ${clientId}`;
-  socket.clientName = clientName;
+  clientId++;
+  const thisClientId = clientId;
+  let clientName = `Client ${thisClientId}`;
+  socket.write('Welcome! Please enter your name:\n');
 
-  console.log(`${clientName} connected`);
-  socket.write(`Welcome ${clientName}!\n`);
-  clients.push(socket);
-
-  // Flag to avoid double-logging disconnect on error + end
-  let disconnected = false;
+  let named = false;
 
   socket.on('data', (data) => {
     const message = data.toString().trim();
-    console.log(`Received message from ${clientName}: ${message}`);
 
-    for (let client of clients) {
-      if (client !== socket) {
-        client.write(`${clientName}: ${message}\n`);
-      }
+    if (!named) {
+      clientName = message || clientName;
+      clients.push({ id: thisClientId, name: clientName, socket });
+      named = true;
+      broadcast(`${clientName} has joined the chat.\n`, socket);
+      return;
     }
+
+    broadcast(`${clientName}: ${message}\n`, socket);
   });
 
   socket.on('end', () => {
-    if (!disconnected) {
-      disconnected = true;
-      console.log(`${clientName} disconnected`);
-      clients.splice(clients.indexOf(socket), 1);
-    }
+    clients = clients.filter(c => c.socket !== socket);
+    broadcast(`${clientName} has left the chat.\n`);
   });
 
   socket.on('error', (err) => {
-    if (!disconnected) {
-      disconnected = true;
-      console.log(`${clientName} disconnected`);
-      clients.splice(clients.indexOf(socket), 1);
-      // Optional: log actual error silently
-      // console.error(`${clientName} error: ${err.message}`);
-    }
+    console.log(`${clientName} disconnected.`);
   });
 });
 
-const PORT = 5000;
-server.listen(PORT, () => {
-  console.log(`Chat server running on port ${PORT}`);
+function broadcast(message, senderSocket) {
+  clients.forEach(client => {
+    if (client.socket !== senderSocket) {
+      client.socket.write(message);
+    }
+  });
+}
+
+server.listen(3000, () => {
+  console.log('Chat server listening on port 3000');
 });
