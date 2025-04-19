@@ -39,11 +39,24 @@ const server = net.createServer((socket) => {
       }
       return;
     }
+    
     if (message === '/list') {
       const names = clients.map(c => `- ${c.name}`).join('\n');
       socket.write(`>> Online Users:\n${names}\n`);
       return;
     }
+
+    // ✅ New: Check for /help command
+if (message === '/help') {
+  socket.write(
+    `>> Available Commands:\n` +
+    `/msg <username> <message> - Send private message\n` +
+    `/list                     - List online users\n` +
+    `/help                     - Show this help message\n`
+  );
+  return;
+}
+
     
 
     broadcast(`${clientName}: ${message}\n`, socket);
