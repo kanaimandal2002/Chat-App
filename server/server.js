@@ -22,6 +22,22 @@ const server = net.createServer((socket) => {
       return;
     }
 
+    // Check for private message
+    if (message.startsWith('/msg ')) {
+      const parts = message.split(' ');
+      const targetName = parts[1];
+      const privateMsg = parts.slice(2).join(' ');
+
+      const targetClient = clients.find(c => c.name === targetName);
+      if (targetClient) {
+        targetClient.socket.write(`[Private] ${clientName}: ${privateMsg}\n`);
+        socket.write(`[Private to ${targetName}]: ${privateMsg}\n`);
+      } else {
+        socket.write(`User '${targetName}' not found.\n`);
+      }
+      return;
+    }
+
     broadcast(`${clientName}: ${message}\n`, socket);
   });
 
@@ -30,7 +46,7 @@ const server = net.createServer((socket) => {
     broadcast(`${clientName} has left the chat.\n`);
   });
 
-  socket.on('error', (err) => {
+  socket.on('error', () => {
     console.log(`${clientName} disconnected.`);
   });
 });
