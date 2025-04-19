@@ -18,11 +18,13 @@ const server = net.createServer((socket) => {
       clientName = message || clientName;
       clients.push({ id: thisClientId, name: clientName, socket });
       named = true;
+
       broadcast(`${clientName} has joined the chat.\n`, socket);
+      sendClientCount(); // update everyone
+      console.log(`${clientName} connected. Total online: ${clients.length}`);
       return;
     }
 
-    // Check for private message
     if (message.startsWith('/msg ')) {
       const parts = message.split(' ');
       const targetName = parts[1];
@@ -44,10 +46,14 @@ const server = net.createServer((socket) => {
   socket.on('end', () => {
     clients = clients.filter(c => c.socket !== socket);
     broadcast(`${clientName} has left the chat.\n`);
+    sendClientCount();
+    console.log(`${clientName} disconnected. Total online: ${clients.length}`);
   });
 
   socket.on('error', () => {
-    console.log(`${clientName} disconnected.`);
+    clients = clients.filter(c => c.socket !== socket);
+    sendClientCount();
+    console.log(`${clientName} disconnected. Total online: ${clients.length}`);
   });
 });
 
@@ -56,6 +62,14 @@ function broadcast(message, senderSocket) {
     if (client.socket !== senderSocket) {
       client.socket.write(message);
     }
+  });
+}
+
+// Send online count to all clients
+function sendClientCount() {
+  const countMessage = `>> Total clients online: ${clients.length}\n`;
+  clients.forEach(client => {
+    client.socket.write(countMessage);
   });
 }
 
