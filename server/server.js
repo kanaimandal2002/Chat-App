@@ -39,6 +39,12 @@ const server = net.createServer((socket) => {
       }
       return;
     }
+    if (message === '/list') {
+      const names = clients.map(c => `- ${c.name}`).join('\n');
+      socket.write(`>> Online Users:\n${names}\n`);
+      return;
+    }
+    
 
     broadcast(`${clientName}: ${message}\n`, socket);
   });
@@ -52,6 +58,7 @@ const server = net.createServer((socket) => {
 
   socket.on('error', () => {
     clients = clients.filter(c => c.socket !== socket);
+    broadcast(`${clientName} disconnected from the chat!\n`, socket);
     sendClientCount();
     console.log(`${clientName} disconnected. Total online: ${clients.length}`);
   });
