@@ -15,17 +15,22 @@ const server = net.createServer((socket) => {
     const message = data.toString().trim();
 
     // First message = name
-    if (!named) {
-      clientName = message || clientName;
-      clients.push({ id: thisClientId, name: clientName, socket });
-      named = true;
-
-      socket.write(`Welcome, ${clientName}!\n`);
-      broadcast(`${getTimeStamp()} ${clientName} has joined the chat.\n`, socket);
-      sendClientCount();
-      console.log(`${clientName} connected. Total online: ${clients.length}`);
+  if (!named) {
+    if (clients.some(c => c.name === message)) {
+      socket.write(`❌ Username '${message}' is already taken. Please choose another name:\n`);
       return;
     }
+
+    clientName = message || clientName;
+    clients.push({ id: thisClientId, name: clientName, socket });
+    named = true;
+
+    socket.write(`✅ Welcome, ${clientName}!\n`);
+    broadcast(`${getTimeStamp()} ${clientName} has joined the chat.\n`, socket);
+    sendClientCount();
+    console.log(`${clientName} connected. Total online: ${clients.length}`);
+    return;
+  }
 
     // /msg command
     if (message.startsWith('/msg ')) {
