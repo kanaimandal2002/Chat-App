@@ -5,6 +5,8 @@ const path = require('path');
 let clients = [];
 let clientId = 0;
 
+const typingStatus = new Map(); // Track typing status of clients
+
 const usersFilePath = path.join(__dirname, 'users.json');
 if (!fs.existsSync(usersFilePath)) fs.writeFileSync(usersFilePath, '[]');
 
@@ -49,6 +51,15 @@ const server = net.createServer((socket) => {
         }
         return;
       }
+      // Typing indicator logic
+if (!typingStatus.has(socket)) {
+  broadcast(`[${clientName}] is typing...\n`, socket);
+  const timeout = setTimeout(() => {
+    typingStatus.delete(socket);
+  }, 2000);
+  typingStatus.set(socket, timeout);
+}
+
 
       if (loginStage === 'login-username') {
         tempUsername = message;
@@ -146,6 +157,8 @@ const server = net.createServer((socket) => {
     broadcast(`${clientName} has left the chat.\n`);
     sendClientCount();
     logMessage(`${clientName} disconnected.`);
+    typingStatus.delete(socket);
+
     console.log(`${clientName} disconnected. Total online: ${clients.length}`);
   });
 
@@ -154,6 +167,8 @@ const server = net.createServer((socket) => {
     broadcast(`${clientName} disconnected from the chat!\n`);
     sendClientCount();
     logMessage(`${clientName} error/disconnect.`);
+    typingStatus.delete(socket);
+
     console.log(`${clientName} disconnected. Total online: ${clients.length}`);
   });
 });
