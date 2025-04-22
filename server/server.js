@@ -51,15 +51,15 @@ const server = net.createServer((socket) => {
         }
         return;
       }
-      // Typing indicator logic
-if (!typingStatus.has(socket)) {
-  broadcast(`[${clientName}] is typing...\n`, socket);
-  const timeout = setTimeout(() => {
-    typingStatus.delete(socket);
-  }, 2000);
-  typingStatus.set(socket, timeout);
-}
 
+      // Typing indicator logic
+      if (!typingStatus.has(socket)) {
+        broadcast(`[${clientName}] is typing...\n`, socket);
+        const timeout = setTimeout(() => {
+          typingStatus.delete(socket);
+        }, 2000);
+        typingStatus.set(socket, timeout);
+      }
 
       if (loginStage === 'login-username') {
         tempUsername = message;
@@ -73,7 +73,8 @@ if (!typingStatus.has(socket)) {
         const found = users.find(u => u.username === tempUsername && u.password === message);
         if (found) {
           clientName = tempUsername;
-          clients.push({ id: thisClientId, name: clientName, socket });
+          clients.push({ id: thisClientId, name: clientName, socket, paused: false });
+
           named = true;
           socket.write(`✅ Welcome back, ${clientName}!\n`);
           broadcast(`${clientName} has joined the chat.\n`, socket);
@@ -104,7 +105,7 @@ if (!typingStatus.has(socket)) {
         users.push({ username: tempUsername, password: message });
         saveUsers(users);
         clientName = tempUsername;
-        clients.push({ id: thisClientId, name: clientName, socket });
+        clients.push({ id: thisClientId, name: clientName, socket, paused: false });
         named = true;
         socket.write(`✅ Registration successful. Welcome, ${clientName}!\n`);
         broadcast(`${clientName} has joined the chat.\n`, socket);
@@ -113,10 +114,29 @@ if (!typingStatus.has(socket)) {
         console.log(`${clientName} registered. Total online: ${clients.length}`);
         return;
       }
+
       return;
     }
 
     // Commands after login
+    if (message === '/pause') {
+      const client = clients.find(c => c.socket === socket);
+      if (client) {
+        client.paused = true;
+        socket.write('>> You have paused the chat. Use /resume to see messages again.\n');
+      }
+      return;
+    }
+
+    if (message === '/resume') {
+      const client = clients.find(c => c.socket === socket);
+      if (client) {
+        client.paused = false;
+        socket.write('>> You have resumed the chat.\n');
+      }
+      return;
+    }
+
     if (message.startsWith('/msg ')) {
       const parts = message.split(' ');
       const targetName = parts[1];
@@ -143,6 +163,8 @@ if (!typingStatus.has(socket)) {
         `>> Available Commands:\n` +
         `/msg <username> <message> - Send private message\n` +
         `/list                     - List online users\n` +
+        `/pause                    - Pause receiving messages\n` +
+        `/resume                   - Resume receiving messages\n` +
         `/help                     - Show this help message\n`
       );
       return;
@@ -158,7 +180,6 @@ if (!typingStatus.has(socket)) {
     sendClientCount();
     logMessage(`${clientName} disconnected.`);
     typingStatus.delete(socket);
-
     console.log(`${clientName} disconnected. Total online: ${clients.length}`);
   });
 
@@ -168,21 +189,20 @@ if (!typingStatus.has(socket)) {
     sendClientCount();
     logMessage(`${clientName} error/disconnect.`);
     typingStatus.delete(socket);
-
     console.log(`${clientName} disconnected. Total online: ${clients.length}`);
   });
 });
 
- // Broadcast to all except sender
- function broadcast(message, senderSocket) {
+// ✅ Broadcast to all except sender, respecting pause status
+function broadcast(message, senderSocket) {
   clients.forEach(client => {
-    if (client.socket !== senderSocket) {
+    if (client.socket !== senderSocket && !client.paused) {
       client.socket.write(message);
     }
   });
 }
 
-// Send total client count
+// ✅ Send total client count
 function sendClientCount() {
   const msg = `>> Total clients online: ${clients.length}\n`;
   clients.forEach(client => {
@@ -211,7 +231,17 @@ function logMessage(message) {
     if (err) console.error('Failed to write to log:', err);
   });
 }
+//function for pause/resume logic
+function broadcast(message, senderSocket) {
+  clients.forEach(client => {
+    if (client.socket !== senderSocket && !client.paused) {
+      client.socket.write(message);
+    }
+  });
+}
 
+// Start the server
 server.listen(3000, () => {
   console.log('Chat server listening on port 3000');
 });
+

@@ -7,3 +7,20 @@
 2025-04-21T16:42:33.945Z Bob: hi
 2025-04-21T16:43:18.776Z Alice: hello
 2025-04-21T16:43:35.460Z Bob error/disconnect.
+2025-04-22T16:43:14.454Z Tom registered and joined.
+2025-04-22T16:49:29.220Z Bob1 registered and joined.
+2025-04-22T16:49:36.594Z Bob1: hi
+2025-04-22T16:49:58.043Z Tom: hello!
+2025-04-22T16:50:31.587Z Bob1: hihow are you?
+2025-04-22T16:51:07.411Z Tom: good..
+2025-04-22T16:52:09.722Z Tom: /pause
+2025-04-22T16:52:26.866Z Bob1: youyou?
+2025-04-22T16:53:47.568Z Tom: okay!
+2025-04-22T16:54:05.048Z Bob1: great
+2025-04-22T17:09:07.057Z Bob logged in.
+2025-04-22T17:10:30.740Z Client 2 error/disconnect.
+2025-04-22T17:12:38.520Z John1 registered and joined.
+2025-04-22T17:12:44.879Z John1: hi
+2025-04-22T17:13:11.272Z John1: again!
+2025-04-22T17:13:25.767Z Bob: hi
+2025-04-22T17:14:19.384Z John1: hello!
