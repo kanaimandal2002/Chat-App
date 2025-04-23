@@ -1,3 +1,4 @@
+// Clean disconnection
 const net = require('net');
 const fs = require('fs');
 const path = require('path');
@@ -73,7 +74,7 @@ const server = net.createServer((socket) => {
         const found = users.find(u => u.username === tempUsername && u.password === message);
         if (found) {
           clientName = tempUsername;
-          clients.push({ id: thisClientId, name: clientName, socket, paused: false });
+          clients.push({ id: thisClientId, name: clientName, socket, paused: false, lastMessage: null });
 
           named = true;
           socket.write(`✅ Welcome back, ${clientName}!\n`);
@@ -105,7 +106,7 @@ const server = net.createServer((socket) => {
         users.push({ username: tempUsername, password: message });
         saveUsers(users);
         clientName = tempUsername;
-        clients.push({ id: thisClientId, name: clientName, socket, paused: false });
+        clients.push({ id: thisClientId, name: clientName, socket, paused: false, lastMessage: null });
         named = true;
         socket.write(`✅ Registration successful. Welcome, ${clientName}!\n`);
         broadcast(`${clientName} has joined the chat.\n`, socket);
@@ -165,13 +166,33 @@ const server = net.createServer((socket) => {
         `/list                     - List online users\n` +
         `/pause                    - Pause receiving messages\n` +
         `/resume                   - Resume receiving messages\n` +
+        `/edit <new message>       - Edit your last message\n` +
         `/help                     - Show this help message\n`
       );
       return;
     }
 
+    if (message.startsWith('/edit ')) {
+      const newMessage = message.slice(6).trim();
+      const client = clients.find(c => c.socket === socket);
+
+      if (!client || !client.lastMessage) {
+        socket.write('>> No previous message to edit.\n');
+      } else {
+        const editedMessage = `${client.name} edited their message: ${newMessage}`;
+        broadcast(editedMessage + '\n', socket);
+        logMessage(`[EDITED] ${editedMessage}`);
+        client.lastMessage = newMessage;
+        socket.write('>> Your message was edited and sent.\n');
+      }
+      return;
+    }
+
+    // Normal message
     broadcast(`${clientName}: ${message}\n`, socket);
     logMessage(`${clientName}: ${message}`);
+    const client = clients.find(c => c.socket === socket);
+    if (client) client.lastMessage = message;
   });
 
   socket.on('end', () => {
@@ -209,8 +230,6 @@ function sendClientCount() {
     client.socket.write(msg);
   });
 }
-
-// Clean disconnection
 function handleDisconnect(socket, name) {
   clients = clients.filter(c => c.socket !== socket);
   broadcast(`${getTimeStamp()} ${name} disconnected from the chat!\n`, socket);
