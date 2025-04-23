@@ -4,6 +4,7 @@ const path = require('path');
 
 let clients = [];
 let clientId = 0;
+let globalPaused = false;
 
 const typingStatus = new Map();
 const usersFilePath = path.join(__dirname, 'users.json');
@@ -126,7 +127,6 @@ const server = net.createServer((socket) => {
 
       typingStatus.set(socket, timeout);
     } else {
-      // Reset timer
       clearTimeout(typingStatus.get(socket));
       const timeout = setTimeout(() => {
         typingStatus.delete(socket);
@@ -150,6 +150,35 @@ const server = net.createServer((socket) => {
         client.paused = false;
         socket.write('>> You have resumed the chat.\n');
       }
+      return;
+    }
+
+    if (message === '/pauseall') {
+      if (clientName === 'admin') {
+        globalPaused = true;
+        broadcast('>> ⚠️ The chat has been paused by the admin.\n');
+        socket.write('>> ✅ All chat paused.\n');
+        return;
+      } else {
+        socket.write('>> ❌ Only admin can pause chat for everyone.\n');
+        return;
+      }
+    }
+
+    if (message === '/resumeall') {
+      if (clientName === 'admin') {
+        globalPaused = false;
+        broadcast('>> ✅ The chat has been resumed by the admin.\n');
+        socket.write('>> ✅ All chat resumed.\n');
+        return;
+      } else {
+        socket.write('>> ❌ Only admin can resume chat for everyone.\n');
+        return;
+      }
+    }
+
+    if (globalPaused && clientName !== 'admin') {
+      socket.write('>> ⚠️ Chat is currently paused by the admin. You cannot send messages.\n');
       return;
     }
 
@@ -181,6 +210,8 @@ const server = net.createServer((socket) => {
         `/list                     - List online users\n` +
         `/pause                    - Pause receiving messages\n` +
         `/resume                   - Resume receiving messages\n` +
+        `/pauseall (admin only)    - Pause chat for everyone\n` +
+        `/resumeall (admin only)   - Resume chat for everyone\n` +
         `/edit <new message>       - Edit your last message\n` +
         `/help                     - Show this help message\n`
       );
@@ -287,4 +318,3 @@ function broadcast(message, senderSocket) {
 server.listen(3000, () => {
   console.log('Chat server listening on port 3000');
 });
-
