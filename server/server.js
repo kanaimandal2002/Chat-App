@@ -1,4 +1,3 @@
-// Clean disconnection
 const net = require('net');
 const fs = require('fs');
 const path = require('path');
@@ -6,10 +5,12 @@ const path = require('path');
 let clients = [];
 let clientId = 0;
 
-const typingStatus = new Map(); // Track typing status of clients
-
+const typingStatus = new Map();
 const usersFilePath = path.join(__dirname, 'users.json');
+const logFilePath = path.join(__dirname, 'chat.log');
+
 if (!fs.existsSync(usersFilePath)) fs.writeFileSync(usersFilePath, '[]');
+if (!fs.existsSync(logFilePath)) fs.writeFileSync(logFilePath, '');
 
 function loadUsers() {
   return JSON.parse(fs.readFileSync(usersFilePath));
@@ -21,9 +22,12 @@ function saveUsers(users) {
 
 function logMessage(message) {
   const logEntry = `${new Date().toISOString()} ${message}`;
-  fs.appendFile('chat.log', logEntry + '\n', (err) => {
-    if (err) console.error('Failed to write to log:', err);
-  });
+  fs.appendFileSync(logFilePath, logEntry + '\n');
+}
+
+function getRecentMessages(n = 10) {
+  const lines = fs.readFileSync(logFilePath, 'utf-8').trim().split('\n');
+  return lines.slice(-n);
 }
 
 const server = net.createServer((socket) => {
@@ -53,15 +57,6 @@ const server = net.createServer((socket) => {
         return;
       }
 
-      // Typing indicator logic
-      if (!typingStatus.has(socket)) {
-        broadcast(`[${clientName}] is typing...\n`, socket);
-        const timeout = setTimeout(() => {
-          typingStatus.delete(socket);
-        }, 2000);
-        typingStatus.set(socket, timeout);
-      }
-
       if (loginStage === 'login-username') {
         tempUsername = message;
         socket.write('Enter your password:\n');
@@ -78,6 +73,7 @@ const server = net.createServer((socket) => {
 
           named = true;
           socket.write(`✅ Welcome back, ${clientName}!\n`);
+          sendRecentMessages(socket);
           broadcast(`${clientName} has joined the chat.\n`, socket);
           sendClientCount();
           logMessage(`${clientName} logged in.`);
@@ -109,6 +105,7 @@ const server = net.createServer((socket) => {
         clients.push({ id: thisClientId, name: clientName, socket, paused: false, lastMessage: null });
         named = true;
         socket.write(`✅ Registration successful. Welcome, ${clientName}!\n`);
+        sendRecentMessages(socket);
         broadcast(`${clientName} has joined the chat.\n`, socket);
         sendClientCount();
         logMessage(`${clientName} registered and joined.`);
@@ -119,7 +116,16 @@ const server = net.createServer((socket) => {
       return;
     }
 
-    // Commands after login
+    // Typing indicator
+    if (!typingStatus.has(socket)) {
+      broadcast(`[${clientName}] is typing...\n`, socket);
+      const timeout = setTimeout(() => {
+        typingStatus.delete(socket);
+      }, 2000);
+      typingStatus.set(socket, timeout);
+    }
+
+    // Commands
     if (message === '/pause') {
       const client = clients.find(c => c.socket === socket);
       if (client) {
@@ -214,7 +220,6 @@ const server = net.createServer((socket) => {
   });
 });
 
-// ✅ Broadcast to all except sender, respecting pause status
 function broadcast(message, senderSocket) {
   clients.forEach(client => {
     if (client.socket !== senderSocket && !client.paused) {
@@ -223,13 +228,24 @@ function broadcast(message, senderSocket) {
   });
 }
 
-// ✅ Send total client count
 function sendClientCount() {
   const msg = `>> Total clients online: ${clients.length}\n`;
   clients.forEach(client => {
     client.socket.write(msg);
   });
 }
+
+function sendRecentMessages(socket) {
+  const messages = getRecentMessages(10);
+  if (messages.length > 0) {
+    socket.write('\n>> Recent Messages:\n');
+    messages.forEach(line => {
+      socket.write(`${line}\n`);
+    });
+    socket.write('>> End of History\n\n');
+  }
+}
+// ✅ Handle client disconnection
 function handleDisconnect(socket, name) {
   clients = clients.filter(c => c.socket !== socket);
   broadcast(`${getTimeStamp()} ${name} disconnected from the chat!\n`, socket);
@@ -259,7 +275,6 @@ function broadcast(message, senderSocket) {
   });
 }
 
-// Start the server
 server.listen(3000, () => {
   console.log('Chat server listening on port 3000');
 });
