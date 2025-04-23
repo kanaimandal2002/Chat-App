@@ -119,6 +119,15 @@ const server = net.createServer((socket) => {
     // Typing indicator
     if (!typingStatus.has(socket)) {
       broadcast(`[${clientName}] is typing...\n`, socket);
+
+      const timeout = setTimeout(() => {
+        typingStatus.delete(socket);
+      }, 2000);
+
+      typingStatus.set(socket, timeout);
+    } else {
+      // Reset timer
+      clearTimeout(typingStatus.get(socket));
       const timeout = setTimeout(() => {
         typingStatus.delete(socket);
       }, 2000);
