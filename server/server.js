@@ -149,6 +149,25 @@ const server = net.createServer((socket) => {
       return;
     }
 
+    if (message === '/logout') {
+      const clientIndex = clients.findIndex(c => c.socket === socket);
+      if (clientIndex !== -1) {
+        const name = clients[clientIndex].name;
+        clients.splice(clientIndex, 1);
+        socket.write('🔒 You have been logged out.\n');
+        broadcast(`${name} has logged out.\n`, socket);
+        sendClientCount();
+        logMessage(`${name} logged out.`);
+        named = false;
+        loginStage = 'username';
+        socket.write('Welcome! Do you have an account? (yes/no):\n');
+      } else {
+        socket.write('❌ You are not logged in.\n');
+      }
+      return;
+    }
+    
+
     if (message.startsWith('/msg ')) {
       const parts = message.split(' ');
       const targetName = parts[1];
@@ -180,6 +199,7 @@ const server = net.createServer((socket) => {
         `/edit <id> <new message>  - Edit your last message\n` +
         `/history                  - View your last 10 messages\n` +
         `/room <name>              - Join or create a room\n` +
+        `/whoami                   - Show your username and status\n` +
         `/clear                    - Clear your chat screen\n` +
         `/help                     - Show this help message\n`
       );
@@ -226,6 +246,17 @@ const server = net.createServer((socket) => {
       socket.write(`>> Chat cleared. Welcome back, ${clientName}!\n`);
       return;
     }
+
+    if (message === '/whoami') {
+      const status = client.paused ? '⏸️ Paused' : '▶️ Active';
+      socket.write(
+        `👤 Username: ${clientName}\n` +
+        `📁 Room: ${client.room}\n` +
+        `💡 Status: ${status}\n`
+      );
+      return;
+    }
+    
 
     // Regular message
     messageId++;
