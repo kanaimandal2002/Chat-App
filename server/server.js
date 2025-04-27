@@ -167,6 +167,7 @@ const server = net.createServer((socket) => {
       return;
     }
     
+    
 
     if (message.startsWith('/msg ')) {
       const parts = message.split(' ');
@@ -196,6 +197,7 @@ const server = net.createServer((socket) => {
         `/list                     - List online users\n` +
         `/pause                    - Pause receiving messages\n` +
         `/resume                   - Resume receiving messages\n` +
+        `/logout                   - Logout from the chat\n` +
         `/edit <id> <new message>  - Edit your last message\n` +
         `/history                  - View your last 10 messages\n` +
         `/room <name>              - Join or create a room\n` +
@@ -256,6 +258,26 @@ const server = net.createServer((socket) => {
       );
       return;
     }
+    //kick user
+    if (message.startsWith('/kick ')) {
+      const targetName = message.slice(6).trim();
+      if (!named || clientName !== 'admin') {
+        socket.write('❌ You are not authorized to use /kick.\n');
+        return;
+      }
+    
+      const targetClient = clients.find(c => c.name === targetName);
+      if (targetClient) {
+        targetClient.socket.write('⛔ You have been kicked by admin.\n');
+        targetClient.socket.end(); // Disconnect the kicked client
+        broadcast(`🚫 ${targetName} was kicked by admin.\n`, socket);
+        logMessage(`Admin kicked ${targetName}`);
+      } else {
+        socket.write(`❌ User '${targetName}' not found.\n`);
+      }
+      return;
+    }
+    
     
 
     // Regular message

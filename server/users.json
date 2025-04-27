@@ -1,26 +1,5 @@
 [
-  {
-    "username": "Alice",
-    "password": "1234"
-  },
-  {
-    "username": "Bob",
-    "password": "abcd"
-  },
-  {
-    "username": "Jhon",
-    "password": "1234"
-  },
-  {
-    "username": "Tom",
-    "password": "1234"
-  },
-  {
-    "username": "Bob1",
-    "password": "1234"
-  },
-  {
-    "username": "John1",
-    "password": "1234"
-  }
-]
+    { "username": "Alice", "password": "1234" },
+    { "username": "Bob", "password": "abcd" }
+  ]
+ 
