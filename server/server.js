@@ -6,9 +6,12 @@ let clients = [];
 let clientId = 0;
 let messageId = 0;
 const typingStatus = new Map();
-const chatHistory = new Map(); // user => [{ id, text }]
+const chatHistory = new Map();
 const usersFilePath = path.join(__dirname, 'users.json');
+const bannedFilePath = path.join(__dirname, 'banned.json');
+
 if (!fs.existsSync(usersFilePath)) fs.writeFileSync(usersFilePath, '[]');
+if (!fs.existsSync(bannedFilePath)) fs.writeFileSync(bannedFilePath, '[]');
 
 function loadUsers() {
   return JSON.parse(fs.readFileSync(usersFilePath));
@@ -16,6 +19,14 @@ function loadUsers() {
 
 function saveUsers(users) {
   fs.writeFileSync(usersFilePath, JSON.stringify(users, null, 2));
+}
+
+function loadBanned() {
+  return JSON.parse(fs.readFileSync(bannedFilePath));
+}
+
+function saveBanned(banned) {
+  fs.writeFileSync(bannedFilePath, JSON.stringify(banned, null, 2));
 }
 
 function logMessage(message) {
@@ -59,7 +70,6 @@ const server = net.createServer((socket) => {
   socket.on('data', (data) => {
     const message = data.toString().trim();
 
-    // Typing indicator
     if (!typingStatus.has(socket)) {
       broadcast(`[${clientName}] is typing...\n`, socket, currentRoom);
       const timeout = setTimeout(() => typingStatus.delete(socket), 2000);
@@ -89,6 +99,12 @@ const server = net.createServer((socket) => {
 
       if (loginStage === 'login-password') {
         const users = loadUsers();
+        const banned = loadBanned();
+        if (banned.includes(tempUsername)) {
+          socket.write('⛔ You are banned from this server.\n');
+          socket.end();
+          return;
+        }
         const found = users.find(u => u.username === tempUsername && u.password === message);
         if (found) {
           clientName = tempUsername;
@@ -134,7 +150,6 @@ const server = net.createServer((socket) => {
       return;
     }
 
-    // After login commands
     const client = clients.find(c => c.socket === socket);
 
     if (message === '/pause') {
@@ -192,6 +207,7 @@ const server = net.createServer((socket) => {
       socket.write(
         `>> Available Commands:\n` +
         '/kick <username>          - Kick a user (admin only)\n' +
+        '/ban <username>           - Ban a user permanently (admin only)\n' +
         '/msg <username> <message> - Send private message\n' +
         '/list                     - List online users\n' +
         '/pause                    - Pause receiving messages\n' +
@@ -259,7 +275,7 @@ const server = net.createServer((socket) => {
 
     if (message.startsWith('/kick ')) {
       const targetName = message.slice(6).trim();
-      if (!named || clientName !== 'admin') {
+      if (clientName !== 'admin') {
         socket.write('❌ You are not authorized to use /kick.\n');
         return;
       }
@@ -275,7 +291,27 @@ const server = net.createServer((socket) => {
       return;
     }
 
-    // Regular message
+    if (message.startsWith('/ban ')) {
+      const targetName = message.slice(5).trim();
+      if (clientName !== 'admin') {
+        socket.write('❌ You are not authorized to use /ban.\n');
+        return;
+      }
+      const banned = loadBanned();
+      if (!banned.includes(targetName)) {
+        banned.push(targetName);
+        saveBanned(banned);
+      }
+      const targetClient = clients.find(c => c.name === targetName);
+      if (targetClient) {
+        targetClient.socket.write('⛔ You have been banned by admin.\n');
+        targetClient.socket.end();
+      }
+      broadcast(`🚫 ${targetName} was banned by admin.\n`, socket);
+      logMessage(`Admin banned ${targetName}`);
+      return;
+    }
+
     messageId++;
     const finalMsg = `${getTimeStamp()} ${clientName}: ${message}`;
     if (!chatHistory.has(clientName)) chatHistory.set(clientName, []);
