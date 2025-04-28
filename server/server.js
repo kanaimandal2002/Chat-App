@@ -193,6 +193,7 @@ const server = net.createServer((socket) => {
     if (message === '/help') {
       socket.write(
         `>> Available Commands:\n` +
+        '/kick <username>          - Kick a user (admin only)\n' +
         `/msg <username> <message> - Send private message\n` +
         `/list                     - List online users\n` +
         `/pause                    - Pause receiving messages\n` +
