@@ -208,6 +208,7 @@ const server = net.createServer((socket) => {
         `>> Available Commands:\n` +
         '/kick <username>          - Kick a user (admin only)\n' +
         '/ban <username>           - Ban a user permanently (admin only)\n' +
+        '/unban <username>         - Unban a user (admin only)\n' +
         '/msg <username> <message> - Send private message\n' +
         '/list                     - List online users\n' +
         '/pause                    - Pause receiving messages\n' +
@@ -312,36 +313,49 @@ const server = net.createServer((socket) => {
       return;
     }
 
-    messageId++;
-    const finalMsg = `${getTimeStamp()} ${clientName}: ${message}`;
-    if (!chatHistory.has(clientName)) chatHistory.set(clientName, []);
-    chatHistory.get(clientName).push({ id: messageId, text: message });
-    if (chatHistory.get(clientName).length > 10) {
-      chatHistory.get(clientName).shift();
+    if (message.startsWith('/unban ')) {
+      const targetName = message.slice(7).trim();
+      if (clientName !== 'admin') {
+        socket.write('❌ You are not authorized to use /unban.\n');
+        return;
+      }
+      const banned = loadBanned();
+      const index = banned.indexOf(targetName);
+      if (index !== -1) {
+        banned.splice(index, 1);
+        saveBanned(banned);
+        socket.write(`✅ User '${targetName}' has been unbanned.\n`);
+        logMessage(`Admin unbanned ${targetName}`);
+      } else {
+        socket.write(`❌ User '${targetName}' is not banned.\n`);
+      }
+      return;
     }
 
-    broadcast(finalMsg + '\n', socket, client.room);
-    socket.write(finalMsg + '\n');
+    const history = chatHistory.get(clientName) || [];
+    messageId++;
+    history.push({ id: messageId, text: message });
+    if (history.length > 10) history.shift();
+    chatHistory.set(clientName, history);
+
+    const fullMessage = `${getTimeStamp()} ${clientName}: ${message}\n`;
+    broadcast(fullMessage, socket, currentRoom);
+    socket.write(fullMessage);
     logMessage(`${clientName}: ${message}`);
   });
 
   socket.on('end', () => {
     clients = clients.filter(c => c.socket !== socket);
-    broadcast(`${clientName} has left the chat.\n`, socket, currentRoom);
+    broadcast(`${clientName} has left the chat.\n`, socket);
     sendClientCount();
     logMessage(`${clientName} disconnected.`);
-    typingStatus.delete(socket);
   });
 
-  socket.on('error', () => {
-    clients = clients.filter(c => c.socket !== socket);
-    broadcast(`${clientName} disconnected from the chat!\n`, socket, currentRoom);
-    sendClientCount();
-    logMessage(`${clientName} error/disconnect.`);
-    typingStatus.delete(socket);
+  socket.on('error', (err) => {
+    console.error('Socket error:', err);
   });
 });
 
-server.listen(3000, () => {
-  console.log('🚀 Chat server running on port 3000');
+server.listen(5000, () => {
+  console.log('Server listening on port 5000');
 });
