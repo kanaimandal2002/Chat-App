@@ -287,7 +287,7 @@ const server = net.createServer((socket) => {
         broadcast(`🚫 ${targetName} was kicked by admin.\n`, socket);
         logMessage(`Admin kicked ${targetName}`);
       } else {
-        socket.write(`❌ User '${targetName}' not found.\n`);
+        socket.write(`User ${targetName} not found.\n`);
       }
       return;
     }
@@ -298,18 +298,18 @@ const server = net.createServer((socket) => {
         socket.write('❌ You are not authorized to use /ban.\n');
         return;
       }
-      const banned = loadBanned();
-      if (!banned.includes(targetName)) {
-        banned.push(targetName);
-        saveBanned(banned);
-      }
       const targetClient = clients.find(c => c.name === targetName);
       if (targetClient) {
+        const banned = loadBanned();
+        banned.push(targetName);
+        saveBanned(banned);
         targetClient.socket.write('⛔ You have been banned by admin.\n');
         targetClient.socket.end();
+        broadcast(`🚫 ${targetName} was banned by admin.\n`, socket);
+        logMessage(`Admin banned ${targetName}`);
+      } else {
+        socket.write(`User ${targetName} not found.\n`);
       }
-      broadcast(`🚫 ${targetName} was banned by admin.\n`, socket);
-      logMessage(`Admin banned ${targetName}`);
       return;
     }
 
@@ -324,38 +324,40 @@ const server = net.createServer((socket) => {
       if (index !== -1) {
         banned.splice(index, 1);
         saveBanned(banned);
-        socket.write(`✅ User '${targetName}' has been unbanned.\n`);
+        socket.write(`✅ ${targetName} has been unbanned.\n`);
         logMessage(`Admin unbanned ${targetName}`);
       } else {
-        socket.write(`❌ User '${targetName}' is not banned.\n`);
+        socket.write(`User ${targetName} is not banned.\n`);
       }
       return;
     }
 
-    const history = chatHistory.get(clientName) || [];
-    messageId++;
-    history.push({ id: messageId, text: message });
-    if (history.length > 10) history.shift();
-    chatHistory.set(clientName, history);
-
-    const fullMessage = `${getTimeStamp()} ${clientName}: ${message}\n`;
-    broadcast(fullMessage, socket, currentRoom);
-    socket.write(fullMessage);
-    logMessage(`${clientName}: ${message}`);
+    // Normal message handling
+    if (message) {
+      messageId++;
+      chatHistory.set(clientName, [...(chatHistory.get(clientName) || []), { id: messageId, text: message }]);
+      broadcast(`${getTimeStamp()} ${clientName}: ${message}\n`, socket, currentRoom);
+      logMessage(`${getTimeStamp()} ${clientName}: ${message}`);
+    }
   });
 
   socket.on('end', () => {
-    clients = clients.filter(c => c.socket !== socket);
-    broadcast(`${clientName} has left the chat.\n`, socket);
-    sendClientCount();
-    logMessage(`${clientName} disconnected.`);
+    const clientIndex = clients.findIndex(c => c.socket === socket);
+    if (clientIndex !== -1) {
+      const name = clients[clientIndex].name;
+      clients.splice(clientIndex, 1);
+      broadcast(`${name} has left the chat.\n`, socket);
+      sendClientCount();
+      logMessage(`${name} left the chat.`);
+    }
   });
 
   socket.on('error', (err) => {
     console.error('Socket error:', err);
   });
+
 });
 
 server.listen(5000, () => {
-  console.log('Server listening on port 5000');
+  console.log('Server running on port 5000');
 });
