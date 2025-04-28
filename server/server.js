@@ -166,8 +166,6 @@ const server = net.createServer((socket) => {
       }
       return;
     }
-    
-    
 
     if (message.startsWith('/msg ')) {
       const parts = message.split(' ');
@@ -194,17 +192,17 @@ const server = net.createServer((socket) => {
       socket.write(
         `>> Available Commands:\n` +
         '/kick <username>          - Kick a user (admin only)\n' +
-        `/msg <username> <message> - Send private message\n` +
-        `/list                     - List online users\n` +
-        `/pause                    - Pause receiving messages\n` +
-        `/resume                   - Resume receiving messages\n` +
-        `/logout                   - Logout from the chat\n` +
-        `/edit <id> <new message>  - Edit your last message\n` +
-        `/history                  - View your last 10 messages\n` +
-        `/room <name>              - Join or create a room\n` +
-        `/whoami                   - Show your username and status\n` +
-        `/clear                    - Clear your chat screen\n` +
-        `/help                     - Show this help message\n`
+        '/msg <username> <message> - Send private message\n' +
+        '/list                     - List online users\n' +
+        '/pause                    - Pause receiving messages\n' +
+        '/resume                   - Resume receiving messages\n' +
+        '/logout                   - Logout from the chat\n' +
+        '/edit <id> <new message>  - Edit your last message\n' +
+        '/history                  - View your last 10 messages\n' +
+        '/room <name>              - Join or create a room\n' +
+        '/whoami                   - Show your username and status\n' +
+        '/clear                    - Clear your chat screen\n' +
+        '/help                     - Show this help message\n'
       );
       return;
     }
@@ -244,7 +242,6 @@ const server = net.createServer((socket) => {
     }
 
     if (message === '/clear') {
-      // Clear screen ANSI escape code
       socket.write('\x1Bc');
       socket.write(`>> Chat cleared. Welcome back, ${clientName}!\n`);
       return;
@@ -259,18 +256,17 @@ const server = net.createServer((socket) => {
       );
       return;
     }
-    //kick user
+
     if (message.startsWith('/kick ')) {
       const targetName = message.slice(6).trim();
       if (!named || clientName !== 'admin') {
         socket.write('❌ You are not authorized to use /kick.\n');
         return;
       }
-    
       const targetClient = clients.find(c => c.name === targetName);
       if (targetClient) {
         targetClient.socket.write('⛔ You have been kicked by admin.\n');
-        targetClient.socket.end(); // Disconnect the kicked client
+        targetClient.socket.end();
         broadcast(`🚫 ${targetName} was kicked by admin.\n`, socket);
         logMessage(`Admin kicked ${targetName}`);
       } else {
@@ -278,8 +274,6 @@ const server = net.createServer((socket) => {
       }
       return;
     }
-    
-    
 
     // Regular message
     messageId++;
@@ -313,5 +307,5 @@ const server = net.createServer((socket) => {
 });
 
 server.listen(3000, () => {
-  console.log('📡 Chat server listening on port 3000');
+  console.log('🚀 Chat server running on port 3000');
 });
