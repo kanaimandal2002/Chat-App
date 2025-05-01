@@ -218,6 +218,8 @@ const server = net.createServer((socket) => {
         '/history                  - View your last 10 messages\n' +
         '/room <name>              - Join or create a room\n' +
         '/whoami                   - Show your username and status\n' +
+        '/dm <username> <message> - Send a direct message\n' +
+        '/ban <username>           - Ban a user (admin only)\n' +
         '/clear                    - Clear your chat screen\n' +
         '/help                     - Show this help message\n'
       );
@@ -273,6 +275,27 @@ const server = net.createServer((socket) => {
       );
       return;
     }
+
+    if (message.startsWith('/dm ')) {
+      const parts = message.split(' ');
+      const targetName = parts[1];
+      const dmMessage = parts.slice(2).join(' ');
+    
+      const targetClient = clients.find(c => c.name === targetName);
+      if (!targetClient) {
+        socket.write(`❌ User ${targetName} not found or not online.\n`);
+        return;
+      }
+    
+      targetClient.socket.write(`🔒 DM from ${clientName}: ${dmMessage}\n`);
+      socket.write(`📤 DM to ${targetName}: ${dmMessage}\n`);
+    
+      // Optional: log to dm_log.txt
+      fs.appendFileSync('dm_log.txt', `[${getTimeStamp()}] ${clientName} ➜ ${targetName}: ${dmMessage}\n`);
+    
+      return;
+    }
+    
 
     if (message.startsWith('/kick ')) {
       const targetName = message.slice(6).trim();
