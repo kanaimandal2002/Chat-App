@@ -1,39 +1,5 @@
-2025-04-19T23:49:53.292Z Bob: hi!
-2025-04-19T23:50:00.836Z Jhon: Hello!
-2025-04-21T16:27:37.578Z Alice logged in.
-2025-04-21T16:28:56.950Z Jhon registered and joined.
-2025-04-21T16:40:54.881Z Alice logged in.
-2025-04-21T16:41:26.129Z Bob logged in.
-2025-04-21T16:42:33.945Z Bob: hi
-2025-04-21T16:43:18.776Z Alice: hello
-2025-04-21T16:43:35.460Z Bob error/disconnect.
-2025-04-22T16:43:14.454Z Tom registered and joined.
-2025-04-22T16:49:29.220Z Bob1 registered and joined.
-2025-04-22T16:49:36.594Z Bob1: hi
-2025-04-22T16:49:58.043Z Tom: hello!
-2025-04-22T16:50:31.587Z Bob1: hihow are you?
-2025-04-22T16:51:07.411Z Tom: good..
-2025-04-22T16:52:09.722Z Tom: /pause
-2025-04-22T16:52:26.866Z Bob1: youyou?
-2025-04-22T16:53:47.568Z Tom: okay!
-2025-04-22T16:54:05.048Z Bob1: great
-2025-04-22T17:09:07.057Z Bob logged in.
-2025-04-22T17:10:30.740Z Client 2 error/disconnect.
-2025-04-22T17:12:38.520Z John1 registered and joined.
-2025-04-22T17:12:44.879Z John1: hi
-2025-04-22T17:13:11.272Z John1: again!
-2025-04-22T17:13:25.767Z Bob: hi
-2025-04-22T17:14:19.384Z John1: hello!
-2025-04-24T18:23:28.718Z Bob logged in.
-2025-04-24T18:44:52.475Z Bob logged in.
-2025-04-24T18:45:03.938Z Bob: /rename
-2025-04-24T18:46:17.482Z Bob logged out.
-2025-04-27T16:19:00.227Z Bob logged in.
-2025-04-27T16:22:08.028Z Alice logged in.
-2025-04-27T16:22:13.538Z Alice: hi
-2025-04-27T16:23:09.722Z Bob joined room room1
-2025-04-27T16:23:43.409Z Alice: how?
-2025-04-27T16:23:52.801Z Bob: hi
-2025-04-27T16:24:16.777Z Alice joined room room1
-2025-04-27T16:24:24.649Z Alice: hi!
-2025-04-27T16:24:41.849Z Bob: hello!
+2025-05-03T16:08:07.525Z admin logged in.
+2025-05-03T16:09:06.284Z guest logged in.
+2025-05-03T16:09:25.632Z Admin banned guest
+2025-05-03T16:09:51.686Z [09:39 pm] user: hi
+2025-05-03T16:09:59.028Z [09:39 pm] admin: ok

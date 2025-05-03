@@ -7,7 +7,7 @@ const rl = readline.createInterface({
   output: process.stdout,
 });
 
-client.connect(3000, 'localhost', () => {
+client.connect(5000, 'localhost', () => {
   console.log('Connected to chat server');
 });
 
