@@ -20,5 +20,5 @@ A basic TCP-based chat application built with Node.js. The app supports multiple
 1. Clone the repository:
 
    ```bash
-   git clone https://github.com/kanaimandal2002/tcp-chat-app.git
+   git clone https://github.com/kanaimandal2002/Chat-App.git
    cd tcp-chat-app
