@@ -22,3 +22,8 @@ A basic TCP-based chat application built with Node.js. The app supports multiple
    ```bash
    git clone https://github.com/kanaimandal2002/Chat-App.git
    cd Chat-App
+
+2. Run it:
+
+   '''bash
+   node server.js
