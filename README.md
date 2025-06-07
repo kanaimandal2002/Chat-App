@@ -33,3 +33,4 @@ A basic TCP-based chat application built with Node.js. The app supports multiple
    ```bash
    node client.js
   
+now , multiple clients can add to the server and chat with other clients.
