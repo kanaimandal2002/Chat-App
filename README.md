@@ -28,7 +28,8 @@ A basic TCP-based chat application built with Node.js. The app supports multiple
    ```bash
    node server.js
    
-add new terminal and run:
+3. add new terminal and run:
+   
+   ```bash
+   node client.js
   
-    ```bash
-     node client.js
