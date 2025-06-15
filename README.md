@@ -32,6 +32,7 @@ A basic TCP-based chat application built with Node.js. The app supports multiple
 3. add new terminal and run:
    
    ```bash
+   cd client
    node client.js
   
 now , multiple clients can add to the server and chat with other clients.
