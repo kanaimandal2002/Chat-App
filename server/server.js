@@ -22,6 +22,8 @@ const emojiMap = {
   ':check:': '✅',
   ':x:': '❌',
   ':sun:': '☀️',
+  ':Llagna': '💀',
+
   // Add more as desired
 };
 
@@ -242,7 +244,7 @@ if (message === '/help') {
     '/room <name>              - Join or create a room\n' +
     '/whoami                   - Show your username and status\n' +
     '/dm <username> <message> - Send a direct message\n' +
-    '/emoji <text>          - Replace text with emojis\n' +
+    '/emoji :text:            - Replace text with emojis\n' +
     '/clear                    - Clear your chat screen\n' +
     '/help                     - Show this help message\n'
   );
