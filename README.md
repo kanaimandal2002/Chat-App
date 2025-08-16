@@ -7,7 +7,6 @@ A basic TCP-based chat application built with Node.js. The app supports multiple
 - **Multiple Clients**: Connect multiple clients and exchange messages.
 - **Client IDs**: Each client is assigned a unique ID (e.g., Client 1, Client 2).
 - **Message Broadcasting**: Messages sent by one client are broadcasted to all other clients.
-- **Graceful Disconnect**: Clients can disconnect gracefully without errors being logged unnecessarily.
 - **Client Error Handling**: Handles client disconnections and errors appropriately.
 
 ## Prerequisites
@@ -20,5 +19,19 @@ A basic TCP-based chat application built with Node.js. The app supports multiple
 1. Clone the repository:
 
    ```bash
-   git clone https://github.com/your-username/tcp-chat-app.git
-   cd tcp-chat-app
+   git clone https://github.com/kanaimandal2002/Chat-App.git
+   cd Chat-App
+
+2. Run it:
+
+   ```bash
+   cd server
+   node server.js
+   
+3. add new terminal and run:
+   
+   ```bash
+   cd client
+   node client.js
+  
+now , multiple clients can add to the server and chat with other clients.
