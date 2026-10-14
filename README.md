@@ -12,7 +12,7 @@ A basic TCP-based chat application built with Node.js. The app supports multiple
 ## Prerequisites
 
 - **Node.js**: Ensure you have [Node.js](https://nodejs.org/) installed on your system.
-- **npm**: Comes with Node.js, but ensure it’s up-to-date.
+- **npm**: Comes with Node.js
 
 ## Installation
 
